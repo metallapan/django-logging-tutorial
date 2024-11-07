@@ -1,0 +1,245 @@
+[
+  {
+    "model": "catalog.language",
+    "pk": 1,
+    "fields": {
+      "name": "English"
+    }
+  },
+  {
+    "model": "catalog.language",
+    "pk": 2,
+    "fields": {
+      "name": "Spanish"
+    }
+  },
+  {
+    "model": "catalog.author",
+    "pk": 1,
+    "fields": {
+      "first_name": "John",
+      "last_name": "Smith",
+      "date_of_birth": "1950-01-01",
+      "date_of_death": "2020-01-01"
+    }
+  },
+  {
+    "model": "catalog.book",
+    "pk": 1,
+    "fields": {
+      "title": "The Great Novel",
+      "author": 1,
+      "summary": "A compelling story about life and adventure",
+      "isbn": "9781234567897",
+      "genre": [1, 2]
+    }
+  },
+  {
+    "model": "catalog.genre",
+    "pk": 1,
+    "fields": {
+      "name": "Fiction"
+    }
+  },
+  {
+    "model": "catalog.genre",
+    "pk": 2,
+    "fields": {
+      "name": "Adventure"
+    }
+  },
+  {
+    "model": "catalog.bookinstance",
+    "pk": 1,
+    "fields": {
+      "book": 1,
+      "imprint": "First Edition",
+      "due_back": null,
+      "status": "a",
+      "borrower": null
+    }
+  },
+  {
+    "model": "catalog.author",
+    "pk": 2,
+    "fields": {
+      "first_name": "Jane",
+      "last_name": "Doe",
+      "date_of_birth": "1965-03-15",
+      "date_of_death": null
+    }
+  },
+  {
+    "model": "catalog.author",
+    "pk": 3,
+    "fields": {
+      "first_name": "Robert",
+      "last_name": "Wilson",
+      "date_of_birth": "1978-11-30",
+      "date_of_death": null
+    }
+  },
+  {
+    "model": "catalog.author",
+    "pk": 4,
+    "fields": {
+      "first_name": "Sarah",
+      "last_name": "Miller",
+      "date_of_birth": "1982-07-22",
+      "date_of_death": null
+    }
+  },
+  {
+    "model": "catalog.genre",
+    "pk": 3,
+    "fields": {
+      "name": "Mystery"
+    }
+  },
+  {
+    "model": "catalog.genre",
+    "pk": 4,
+    "fields": {
+      "name": "Science Fiction"
+    }
+  },
+  {
+    "model": "catalog.genre",
+    "pk": 5,
+    "fields": {
+      "name": "Romance"
+    }
+  },
+  {
+    "model": "catalog.book",
+    "pk": 2,
+    "fields": {
+      "title": "Mystery at Midnight",
+      "author": 2,
+      "summary": "A thrilling detective story set in London",
+      "isbn": "9781234567898",
+      "genre": [1, 3]
+    }
+  },
+  {
+    "model": "catalog.book",
+    "pk": 3,
+    "fields": {
+      "title": "Future World",
+      "author": 3,
+      "summary": "An exploration of humanity's future in space",
+      "isbn": "9781234567899",
+      "genre": [4]
+    }
+  },
+  {
+    "model": "catalog.book",
+    "pk": 4,
+    "fields": {
+      "title": "Love in Paris",
+      "author": 4,
+      "summary": "A romantic tale set in the City of Light",
+      "isbn": "9781234567900",
+      "genre": [5]
+    }
+  },
+  {
+    "model": "catalog.book",
+    "pk": 5,
+    "fields": {
+      "title": "The Lost City",
+      "author": 1,
+      "summary": "An archaeological adventure in South America",
+      "isbn": "9781234567901",
+      "genre": [2, 3]
+    }
+  },
+  {
+    "model": "catalog.book",
+    "pk": 6,
+    "fields": {
+      "title": "Digital Dreams",
+      "author": 3,
+      "summary": "A cyberpunk thriller about virtual reality",
+      "isbn": "9781234567902",
+      "genre": [4]
+    }
+  },
+  {
+    "model": "catalog.book",
+    "pk": 7,
+    "fields": {
+      "title": "Seaside Secrets",
+      "author": 2,
+      "summary": "A coastal mystery with unexpected twists",
+      "isbn": "9781234567903",
+      "genre": [3, 5]
+    }
+  },
+  {
+    "model": "catalog.book",
+    "pk": 8,
+    "fields": {
+      "title": "Mountain Quest",
+      "author": 1,
+      "summary": "A survival story in the Himalayas",
+      "isbn": "9781234567904",
+      "genre": [2]
+    }
+  },
+  {
+    "model": "catalog.book",
+    "pk": 9,
+    "fields": {
+      "title": "The Last Letter",
+      "author": 4,
+      "summary": "A heartwarming story of family secrets",
+      "isbn": "9781234567905",
+      "genre": [1, 5]
+    }
+  },
+  {
+    "model": "catalog.book",
+    "pk": 10,
+    "fields": {
+      "title": "Time Travelers",
+      "author": 3,
+      "summary": "A mind-bending journey through time",
+      "isbn": "9781234567906",
+      "genre": [4, 2]
+    }
+  },
+  {
+    "model": "catalog.book",
+    "pk": 11,
+    "fields": {
+      "title": "Desert Storm",
+      "author": 1,
+      "summary": "A thrilling adventure in the Sahara",
+      "isbn": "9781234567907",
+      "genre": [2]
+    }
+  },
+  {
+    "model": "catalog.book",
+    "pk": 12,
+    "fields": {
+      "title": "Midnight Gardens",
+      "author": 2,
+      "summary": "A mysterious tale set in an ancient estate",
+      "isbn": "9781234567908",
+      "genre": [3, 5]
+    }
+  },
+  {
+    "model": "catalog.bookinstance",
+    "pk": 2,
+    "fields": {
+      "book": 2,
+      "imprint": "Second Edition",
+      "due_back": null,
+      "status": "a",
+      "borrower": null
+    }
+  }
+]
