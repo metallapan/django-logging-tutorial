@@ -10,6 +10,13 @@
     "model": "catalog.language",
     "pk": 2,
     "fields": {
+      "name": "French"
+    }
+  },
+  {
+    "model": "catalog.language",
+    "pk": 3,
+    "fields": {
       "name": "Spanish"
     }
   },
@@ -17,21 +24,30 @@
     "model": "catalog.author",
     "pk": 1,
     "fields": {
-      "first_name": "John",
-      "last_name": "Smith",
-      "date_of_birth": "1950-01-01",
-      "date_of_death": "2020-01-01"
+      "first_name": "Jane",
+      "last_name": "Austen",
+      "date_of_birth": "1775-12-16",
+      "date_of_death": "1817-07-18"
     }
   },
   {
-    "model": "catalog.book",
-    "pk": 1,
+    "model": "catalog.author",
+    "pk": 2,
     "fields": {
-      "title": "The Great Novel",
-      "author": 1,
-      "summary": "A compelling story about life and adventure",
-      "isbn": "9781234567897",
-      "genre": [1, 2]
+      "first_name": "George",
+      "last_name": "Orwell",
+      "date_of_birth": "1903-06-25",
+      "date_of_death": "1950-01-21"
+    }
+  },
+  {
+    "model": "catalog.author",
+    "pk": 3,
+    "fields": {
+      "first_name": "Gabriel",
+      "last_name": "García Márquez",
+      "date_of_birth": "1927-03-06",
+      "date_of_death": "2014-04-17"
     }
   },
   {
@@ -45,79 +61,44 @@
     "model": "catalog.genre",
     "pk": 2,
     "fields": {
-      "name": "Adventure"
+      "name": "Romance"
     }
   },
   {
-    "model": "catalog.bookinstance",
+    "model": "catalog.genre",
+    "pk": 3,
+    "fields": {
+      "name": "Political Fiction"
+    }
+  },
+  {
+    "model": "catalog.genre",
+    "pk": 4,
+    "fields": {
+      "name": "Magical Realism"
+    }
+  },
+  {
+    "model": "catalog.book",
     "pk": 1,
     "fields": {
-      "book": 1,
-      "imprint": "First Edition",
-      "due_back": null,
-      "status": "a",
-      "borrower": null
-    }
-  },
-  {
-    "model": "catalog.author",
-    "pk": 2,
-    "fields": {
-      "first_name": "Jane",
-      "last_name": "Doe",
-      "date_of_birth": "1965-03-15",
-      "date_of_death": null
-    }
-  },
-  {
-    "model": "catalog.author",
-    "pk": 3,
-    "fields": {
-      "first_name": "Robert",
-      "last_name": "Wilson",
-      "date_of_birth": "1978-11-30",
-      "date_of_death": null
-    }
-  },
-  {
-    "model": "catalog.author",
-    "pk": 4,
-    "fields": {
-      "first_name": "Sarah",
-      "last_name": "Miller",
-      "date_of_birth": "1982-07-22",
-      "date_of_death": null
-    }
-  },
-  {
-    "model": "catalog.genre",
-    "pk": 3,
-    "fields": {
-      "name": "Mystery"
-    }
-  },
-  {
-    "model": "catalog.genre",
-    "pk": 4,
-    "fields": {
-      "name": "Science Fiction"
-    }
-  },
-  {
-    "model": "catalog.genre",
-    "pk": 5,
-    "fields": {
-      "name": "Romance"
+      "title": "Pride and Prejudice",
+      "author": 1,
+      "summary": "The story follows the main character Elizabeth Bennet as she deals with issues of manners, upbringing, morality, education, and marriage in the society of the landed gentry of early 19th-century England.",
+      "isbn": "9780141439518",
+      "language": 1,
+      "genre": [1, 2]
     }
   },
   {
     "model": "catalog.book",
     "pk": 2,
     "fields": {
-      "title": "Mystery at Midnight",
+      "title": "1984",
       "author": 2,
-      "summary": "A thrilling detective story set in London",
-      "isbn": "9781234567898",
+      "summary": "A dystopian social science fiction novel that follows Winston Smith, who rebels against the totalitarian government that controls every aspect of citizens' lives.",
+      "isbn": "9780451524935",
+      "language": 1,
       "genre": [1, 3]
     }
   },
@@ -125,121 +106,56 @@
     "model": "catalog.book",
     "pk": 3,
     "fields": {
-      "title": "Future World",
+      "title": "One Hundred Years of Solitude",
       "author": 3,
-      "summary": "An exploration of humanity's future in space",
-      "isbn": "9781234567899",
-      "genre": [4]
-    }
-  },
-  {
-    "model": "catalog.book",
-    "pk": 4,
-    "fields": {
-      "title": "Love in Paris",
-      "author": 4,
-      "summary": "A romantic tale set in the City of Light",
-      "isbn": "9781234567900",
-      "genre": [5]
-    }
-  },
-  {
-    "model": "catalog.book",
-    "pk": 5,
-    "fields": {
-      "title": "The Lost City",
-      "author": 1,
-      "summary": "An archaeological adventure in South America",
-      "isbn": "9781234567901",
-      "genre": [2, 3]
-    }
-  },
-  {
-    "model": "catalog.book",
-    "pk": 6,
-    "fields": {
-      "title": "Digital Dreams",
-      "author": 3,
-      "summary": "A cyberpunk thriller about virtual reality",
-      "isbn": "9781234567902",
-      "genre": [4]
-    }
-  },
-  {
-    "model": "catalog.book",
-    "pk": 7,
-    "fields": {
-      "title": "Seaside Secrets",
-      "author": 2,
-      "summary": "A coastal mystery with unexpected twists",
-      "isbn": "9781234567903",
-      "genre": [3, 5]
-    }
-  },
-  {
-    "model": "catalog.book",
-    "pk": 8,
-    "fields": {
-      "title": "Mountain Quest",
-      "author": 1,
-      "summary": "A survival story in the Himalayas",
-      "isbn": "9781234567904",
-      "genre": [2]
-    }
-  },
-  {
-    "model": "catalog.book",
-    "pk": 9,
-    "fields": {
-      "title": "The Last Letter",
-      "author": 4,
-      "summary": "A heartwarming story of family secrets",
-      "isbn": "9781234567905",
-      "genre": [1, 5]
-    }
-  },
-  {
-    "model": "catalog.book",
-    "pk": 10,
-    "fields": {
-      "title": "Time Travelers",
-      "author": 3,
-      "summary": "A mind-bending journey through time",
-      "isbn": "9781234567906",
-      "genre": [4, 2]
-    }
-  },
-  {
-    "model": "catalog.book",
-    "pk": 11,
-    "fields": {
-      "title": "Desert Storm",
-      "author": 1,
-      "summary": "A thrilling adventure in the Sahara",
-      "isbn": "9781234567907",
-      "genre": [2]
-    }
-  },
-  {
-    "model": "catalog.book",
-    "pk": 12,
-    "fields": {
-      "title": "Midnight Gardens",
-      "author": 2,
-      "summary": "A mysterious tale set in an ancient estate",
-      "isbn": "9781234567908",
-      "genre": [3, 5]
+      "summary": "The multi-generational story of the Buendía family in the fictional town of Macondo, blending reality with magical elements.",
+      "isbn": "9780060883287",
+      "language": 3,
+      "genre": [1, 4]
     }
   },
   {
     "model": "catalog.bookinstance",
-    "pk": 2,
+    "pk": "d5e7340c-1b1f-4b3e-8e4a-63c980178492",
+    "fields": {
+      "book": 1,
+      "imprint": "Penguin Classics 2002",
+      "due_back": "2024-12-01",
+      "borrower": 3,
+      "status": "o"
+    }
+  },
+  {
+    "model": "catalog.bookinstance",
+    "pk": "a7e89f0d-2c3b-4d5e-9f6a-123456789abc",
+    "fields": {
+      "book": 1,
+      "imprint": "Penguin Classics 2003",
+      "due_back": null,
+      "borrower": null,
+      "status": "a"
+    }
+  },
+  {
+    "model": "catalog.bookinstance",
+    "pk": "b8f90e1d-3d4c-5e6f-4b7b-c23456789def",
     "fields": {
       "book": 2,
-      "imprint": "Second Edition",
+      "imprint": "Signet Classics 1961",
       "due_back": null,
-      "status": "a",
-      "borrower": null
+      "borrower": null,
+      "status": "m"
+    }
+  },
+  {
+    "model": "catalog.bookinstance",
+    "pk": "c9f01f2e-4e5d-6f7f-1a8b-d23456789fff",
+    "fields": {
+      "book": 3,
+      "imprint": "Harper Perennial 2006",
+      "due_back": "2024-11-15",
+      "borrower": 3,
+      "status": "o"
     }
   }
 ]
