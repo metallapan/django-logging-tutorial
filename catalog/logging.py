@@ -71,29 +71,13 @@ class ElasticsearchHandler(logging.Handler):
     def __init__(self, hosts):
         super().__init__()
         self.es = Elasticsearch(hosts)
-        self.log_buffer = []
         self.index = "logs"  # Elasticsearch index to store logs
 
     def emit(self, record):
         try:
-            # Format the log record to JSON
-            json_log = self.format(record)
-            # Convert JSON string back to a dict for Elasticsearch
-            log_entry = json.loads(json_log)
-            self.log_buffer.append(log_entry)
+            # TODO EX5: Format the log record to JSON and back to a dict that Elasticsearch can handle
+            # TODO EX5: Add user to the entry? Hostname, other context?
 
-            # Send logs in bulk if buffer size exceeds threshold
-            if len(self.log_buffer) >= 100:
-                self.flush()
+            self.es.index(index=self.index, document=log_entry)
+
         except Exception:
-            self.handleError(record)
-
-    def flush(self):
-        if self.log_buffer:
-            # Bulk send logs to Elasticsearch
-            actions = [
-                {"_index": self.index, "_source": log_entry}
-                for log_entry in self.log_buffer
-            ]
-            bulk(self.es, actions)
-            self.log_buffer = []

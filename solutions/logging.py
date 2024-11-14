@@ -117,31 +117,8 @@ class JSONFormatter(logging.Formatter):
         extras = {
             key: value
             for key, value in record.__dict__.items()
-            # https://docs.python.org/3/library/logging.html#logrecord-attributes
             if key
-            not in {
-                "args",
-                "asctime",
-                "created",
-                "exc_info",
-                "exc_text",
-                "filename",
-                "funcName",
-                "levelname",
-                "levelno",
-                "lineno",
-                "module",
-                "msecs",
-                "msg",
-                "name",
-                "pathname",
-                "process",
-                "processName",
-                "relativeCreated",
-                "stack_info",
-                "thread",
-                "threadName",
-            }
+            not in logging.LogRecord(None, None, None, None, None, None, None,).__dict__
         }
         if extras:
             log_data["extra"] = extras

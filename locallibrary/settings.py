@@ -54,9 +54,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "catalog.apps.CatalogConfig",
-    # to load solutions, uncomment this:
-    # 'solutions.apps.SolutionsAppConfig',
 ]
+# Set env var SOLUTIONS to e.g. 1 to l
 
 try:
     import django_extensions
@@ -106,7 +105,7 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
-
+# TODO EX1: Use JSONFormatter
 LOGGING = {
     "version": 1,
     "handlers": {
@@ -141,7 +140,9 @@ LOGGING = {
         },
     },
 }
-from solutions.settings import LOGGING
+
+
+
 
 
 # Password validation
@@ -212,3 +213,8 @@ STORAGES = {
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Override logging from the solutions
+if os.environ.get('SOLUTIONS'):
+    from solutions.settings import LOGGING
+    INSTALLED_APPS += ['solutions.apps.SolutionsAppConfig']

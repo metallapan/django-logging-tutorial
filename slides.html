@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Log All The Things (in Django)</title>
+<meta name="author" content="Fredrik Håård"/>
+<style type="text/css">
+.underline { text-decoration: underline; }
+</style>
+<link rel="stylesheet" href="./reveal.js/dist/reveal.css"/>
+
+<link rel="stylesheet" href="./reveal.js/dist/theme/moon.css" id="theme"/>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide">
+<h1>Log All The Things (in Django)</h1><h3>Fredrik Håård</h3>
+</section>
+<section>
+<section id="slide-1">
+<h2 id="1"><span class="section-number-2">1.</span> Overview and Setup</h2>
+<div class="outline-text-2" id="text-1">
+</div>
+</section>
+<section id="slide-1-1">
+<h3 id="1-1"><span class="section-number-3">1.1.</span> Environment Check</h3>
+<ul>
+<li>git</li>
+<li>python3.10+</li>
+<li>docker</li>
+
+</ul>
+</section>
+<section id="slide-1-1-1">
+<h4 id="1-1-1"><span class="section-number-4">1.1.1.</span> Get it running</h4>
+<div class="org-src-container">
+
+<pre class="src src-sh">git clone https://github.com/metallapan/django-logging-tutorial.git
+<span style="color: #4f97d7;">cd</span> django-logging-tutorial
+<span style="color: #2aa1ae; background-color: #292e34;">#</span><span style="color: #2aa1ae; background-color: #292e34;">(either)</span>
+./bootstrap.sh
+<span style="color: #2aa1ae; background-color: #292e34;">#</span><span style="color: #2aa1ae; background-color: #292e34;">(or)</span>
+python3.10 -m venv .venv
+<span style="color: #4f97d7;">.</span> .venv/bin/activate <span style="color: #2aa1ae; background-color: #292e34;"># </span><span style="color: #2aa1ae; background-color: #292e34;">(or activate.[fish|csh])</span>
+pip install -r requirements.txt
+inv init run  <span style="color: #2aa1ae; background-color: #292e34;"># </span><span style="color: #2aa1ae; background-color: #292e34;">Convenience to setup, populate database, and run</span>
+</pre>
+</div>
+<ul>
+<li>Access <a href="http://127.0.0.1:8000">http://127.0.0.1:8000</a></li>
+<li>Logins  'admin', 'librarian', 'member' / '&lt;login&gt;pass'</li>
+
+</ul>
+</section>
+<section id="slide-1-2">
+<h3 id="1-2"><span class="section-number-3">1.2.</span> Outline and Goals</h3>
+<ul>
+<li class="fragment appear">MDN Django Library Catalog tutorial</li>
+<li class="fragment appear">Implement structured logging</li>
+<li class="fragment appear">Create audit trails</li>
+<li class="fragment appear">Build 'relatable' in-database logs</li>
+<li class="fragment appear">Add custom log shipping</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-2">
+<h2 id="2"><span class="section-number-2">2.</span> Structured Logging</h2>
+<ul>
+<li>What</li>
+<li>Why</li>
+
+</ul>
+</section>
+<section id="slide-2-1">
+<h3 id="2-1"><span class="section-number-3">2.1.</span> Python logging recap</h3>
+
+<div id="org755251b" class="figure">
+<p><img src="./images/logging.png" alt="logging.png" />
+</p>
+</div>
+</section>
+<section id="slide-2-1-1">
+<h4 id="2-1-1"><span class="section-number-4">2.1.1.</span> Python logging recap cont.</h4>
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #7590db;">LOG</span> = logging.getLogger<span style="color: #4f97d7;">(</span><span style="color: #4f97d7;">__name__</span><span style="color: #4f97d7;">)</span>
+LOG.info<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">"Some message"</span><span style="color: #4f97d7;">)</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="fragment appear"><span style="color: #7590db;">LOG</span> = logging.getLogger<span style="color: #4f97d7;">(</span><span style="color: #4f97d7;">__name__</span><span style="color: #4f97d7;">)</span>
+LOG.info<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">"Some message"</span>, extra=<span style="color: #bc6ec5;">{</span><span style="color: #2d9574;">"context"</span>: context<span style="color: #bc6ec5;">}</span><span style="color: #4f97d7;">)</span>
+</pre>
+</div>
+</section>
+<section id="slide-2-2">
+<h3 id="2-2"><span class="section-number-3">2.2.</span> Structured logging basics</h3>
+<ul>
+<li>Log the <code>extra</code> passed</li>
+<li>Caveats:
+<ul>
+<li class="fragment appear"><code>LogRecord</code> might be extended!</li>
+<li class="fragment appear">Don't break on datetimes</li>
+
+</ul></li>
+
+</ul>
+<div class="org-src-container">
+
+<pre class="fragment (appear)"><span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">JSONFormatter</span><span style="color: #4f97d7;">(</span>logging.Formatter<span style="color: #4f97d7;">)</span>:
+  <span style="color: #4f97d7; font-weight: bold;">def</span> <span style="color: #bc6ec5; font-weight: bold;">format</span><span style="color: #4f97d7;">(</span><span style="color: #4f97d7; font-weight: bold;">self</span>, record: logging.LogRecord<span style="color: #4f97d7;">)</span> -&gt; <span style="color: #4f97d7;">str</span>:
+      <span style="color: #2aa1ae; background-color: #292e34;"># </span><span style="color: #2aa1ae; background-color: #292e34;">Get basic log record attributes</span>
+      <span style="color: #7590db;">log_data</span> = <span style="color: #4f97d7;">{</span>
+          <span style="color: #2d9574;">"timestamp"</span>: <span style="color: #4f97d7; font-weight: bold;">self</span>.formatTime<span style="color: #bc6ec5;">(</span>record<span style="color: #bc6ec5;">)</span>,
+          <span style="color: #2d9574;">"level"</span>: record.levelname,
+          <span style="color: #2d9574;">"logger"</span>: record.name,
+          <span style="color: #2d9574;">"message"</span>: record.getMessage<span style="color: #bc6ec5;">()</span>,
+          <span style="color: #2d9574;">"extra"</span>: record.extra,  <span style="color: #2aa1ae; background-color: #292e34;"># </span><span style="color: #2aa1ae; background-color: #292e34;">logger.info('message', extra={'extra': context})</span>
+      <span style="color: #4f97d7;">}</span>
+      <span style="color: #4f97d7; font-weight: bold;">return</span> json.dumps<span style="color: #4f97d7;">(</span>log_data<span style="color: #4f97d7;">)</span>  <span style="color: #2aa1ae; background-color: #292e34;"># </span><span style="color: #2aa1ae; background-color: #292e34;">better not be any timestamps in extra</span>
+</pre>
+</div>
+</section>
+<section id="slide-2-3">
+<h3 id="2-3"><span class="section-number-3">2.3.</span> Custom Logger + Formatter</h3>
+<ul>
+<li>Can specify the extras nested</li>
+<li>Can ignore extras and have 'custom stuff'</li>
+<li>Will not capture <i>all</i> logs</li>
+
+</ul>
+</section>
+<section id="slide-2-4">
+<h3 id="2-4"><span class="section-number-3">2.4.</span> EX1 - Add structured logging</h3>
+<ul>
+<li>Add structured logging, fixing the  JSONFormatter in <code>catalog/logging.py</code></li>
+<li>Test and verify log output (the main page has an info log)</li>
+<li>grep 'TODO EX1'</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-3">
+<h2 id="3"><span class="section-number-2">3.</span> Using signals</h2>
+<ul>
+<li>One way to hook into Django</li>
+<li>Built-in singals for many things</li>
+<li>Custom signals for any thing</li>
+<li>NOT async in Django &lt;5.0, optionally async in Django &gt;= 5.0</li>
+
+</ul>
+</section>
+<section id="slide-3-1">
+<h3 id="3-1"><span class="section-number-3">3.1.</span> Audit log concerns</h3>
+<ul>
+<li class="fragment appear">Remember rollbacks</li>
+
+</ul>
+<div class="org-src-container">
+
+<pre class="fragment appear"><span style="color: #4f97d7; font-weight: bold;">if</span> transaction.get_autocommit<span style="color: #4f97d7;">()</span>:
+  do_thing<span style="color: #4f97d7;">()</span>
+<span style="color: #4f97d7; font-weight: bold;">else</span>:
+  transaction.on_commit<span style="color: #4f97d7;">(</span>do_thing<span style="color: #4f97d7;">)</span>
+</pre>
+</div>
+</section>
+<section id="slide-3-2">
+<h3 id="3-2"><span class="section-number-3">3.2.</span> Audit log concerns</h3>
+<ul>
+<li>Avoid tasksplosion</li>
+
+</ul>
+
+<div id="orgd67f601" class="figure">
+<p><img src="./images/spike.png" alt="spike.png" class="fragment appear" />
+</p>
+</div>
+</section>
+<section id="slide-3-3">
+<h3 id="3-3"><span class="section-number-3">3.3.</span> Audit log concerns</h3>
+
+<div id="org59debb3" class="figure">
+<p><img src="./images/logjam.jpg" alt="logjam.jpg" />
+</p>
+</div>
+</section>
+<section id="slide-3-4">
+<h3 id="3-4"><span class="section-number-3">3.4.</span> Hands-on Exercise</h3>
+<ul>
+<li>Add pre- or post-save logging for BookInstance in <code>catalog/signals.py</code></li>
+<li>Add login logging whenever a user logs in in the same file</li>
+<li>Modify a BookInstance to test (shell, admin or app)</li>
+<li>grep 'TODO EX2'</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-4">
+<h2 id="4"><span class="section-number-2">4.</span> Adding context</h2>
+<p>
+If we can figure out how we are called, we can grab information from calling scopes.
+How would we do this?
+</p>
+</section>
+<section id="slide-4-1">
+<h3 id="4-1"><span class="section-number-3">4.1.</span> Using <code>inspect</code></h3>
+<ul>
+<li>Not necessarily considered good form - but it works</li>
+
+</ul>
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #2aa1ae; background-color: #292e34;"># </span><span style="color: #2aa1ae; background-color: #292e34;">Get the request object</span>
+<span style="color: #4f97d7; font-weight: bold;">for</span> frame <span style="color: #4f97d7; font-weight: bold;">in</span> inspect.stack<span style="color: #4f97d7;">()</span>:
+    <span style="color: #4f97d7; font-weight: bold;">if</span> frame<span style="color: #4f97d7;">[</span><span style="color: #a45bad;">3</span><span style="color: #4f97d7;">]</span> == <span style="color: #2d9574;">'get_response'</span>:
+        <span style="color: #7590db;">request</span> = frame<span style="color: #4f97d7;">[</span><span style="color: #a45bad;">0</span><span style="color: #4f97d7;">]</span>.f_locals.get<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">'request'</span><span style="color: #4f97d7;">)</span>
+        <span style="color: #4f97d7; font-weight: bold;">break</span>
+</pre>
+</div>
+</section>
+<section id="slide-4-2">
+<h3 id="4-2"><span class="section-number-3">4.2.</span> EX3 - Add user to log</h3>
+<ul>
+<li>In <code>catalog/logging.py</code>, retrieve the requesting user, if any, and add to the log.</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-5">
+<h2 id="5"><span class="section-number-2">5.</span> In-Database Audit Logs</h2>
+<ul>
+<li class="fragment appear">Allows querying log records in context</li>
+<li class="fragment appear">Can make the database Really Quite Large</li>
+
+</ul>
+</section>
+<section id="slide-5-1">
+<h3 id="5-1"><span class="section-number-3">5.1.</span> Single-model Model Design</h3>
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">UserAuditLog</span><span style="color: #4f97d7;">(</span>models.Model<span style="color: #4f97d7;">)</span>:
+    <span style="color: #7590db;">timestamp</span> = models.DateTimeField<span style="color: #4f97d7;">(</span>auto_now_add=<span style="color: #a45bad;">True</span><span style="color: #4f97d7;">)</span>
+    <span style="color: #7590db;">event_type</span> = models.CharField<span style="color: #4f97d7;">(</span>max_length=<span style="color: #a45bad;">100</span><span style="color: #4f97d7;">)</span>
+    <span style="color: #7590db;">user</span> = models.ForeignKey<span style="color: #4f97d7;">(</span>User, null=<span style="color: #a45bad;">True</span>, on_delete=models.SET_NULL,
+                             related_name=<span style="color: #2d9574;">'log_records'</span><span style="color: #4f97d7;">)</span>
+    <span style="color: #7590db;">message</span> = models.TextField<span style="color: #4f97d7;">()</span>
+    <span style="color: #7590db;">data</span> = models.JSONField<span style="color: #4f97d7;">()</span>
+    <span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">Meta</span>:
+        <span style="color: #7590db;">indexes</span> = <span style="color: #4f97d7;">[</span>
+            models.Index<span style="color: #bc6ec5;">(</span>fields=<span style="color: #2d9574;">[</span><span style="color: #2d9574;">'event_type'</span>, <span style="color: #2d9574;">'timestamp'</span><span style="color: #2d9574;">]</span><span style="color: #bc6ec5;">)</span>,
+            models.Index<span style="color: #bc6ec5;">(</span>fields=<span style="color: #2d9574;">[</span><span style="color: #2d9574;">'user'</span><span style="color: #2d9574;">]</span><span style="color: #bc6ec5;">)</span>,
+        <span style="color: #4f97d7;">]</span>
+</pre>
+</div>
+</section>
+<section id="slide-5-2">
+<h3 id="5-2"><span class="section-number-3">5.2.</span> Generic FK Model Design</h3>
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">AuditLog</span><span style="color: #4f97d7;">(</span>models.Model<span style="color: #4f97d7;">)</span>:
+    <span style="color: #7590db;">timestamp</span> = models.DateTimeField<span style="color: #4f97d7;">(</span>auto_now_add=<span style="color: #a45bad;">True</span><span style="color: #4f97d7;">)</span>
+    <span style="color: #7590db;">event_type</span> = models.CharField<span style="color: #4f97d7;">(</span>max_length=<span style="color: #a45bad;">100</span><span style="color: #4f97d7;">)</span>
+    <span style="color: #7590db;">user</span> = models.ForeignKey<span style="color: #4f97d7;">(</span>User, null=<span style="color: #a45bad;">True</span>, on_delete=models.SET_NULL<span style="color: #4f97d7;">)</span>
+    <span style="color: #7590db;">content_type</span> = models.ForeignKey<span style="color: #4f97d7;">(</span>ContentType, on_delete=models.CASCADE<span style="color: #4f97d7;">)</span>
+    <span style="color: #7590db;">message</span> = models.TextField<span style="color: #4f97d7;">()</span>
+    <span style="color: #2aa1ae; background-color: #292e34;"># </span><span style="color: #b1951d; background-color: #292e34; font-weight: bold;">NOTE</span><span style="color: #2aa1ae; background-color: #292e34;">: Requires all objects to have the same PK type</span>
+    <span style="color: #7590db;">object_id</span> = models.UUIDField<span style="color: #4f97d7;">()</span>
+    <span style="color: #7590db;">content_object</span> = GenericForeignKey<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">'content_type'</span>, <span style="color: #2d9574;">'object_id'</span><span style="color: #4f97d7;">)</span>
+    <span style="color: #7590db;">data</span> = models.JSONField<span style="color: #4f97d7;">()</span>
+    <span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">Meta</span>:
+        <span style="color: #7590db;">indexes</span> = <span style="color: #4f97d7;">[</span>
+            models.Index<span style="color: #bc6ec5;">(</span>fields=<span style="color: #2d9574;">[</span><span style="color: #2d9574;">'event_type'</span>, <span style="color: #2d9574;">'timestamp'</span><span style="color: #2d9574;">]</span><span style="color: #bc6ec5;">)</span>,
+            models.Index<span style="color: #bc6ec5;">(</span>fields=<span style="color: #2d9574;">[</span><span style="color: #2d9574;">'content_type'</span>, <span style="color: #2d9574;">'object_id'</span><span style="color: #2d9574;">]</span><span style="color: #bc6ec5;">)</span>,
+        <span style="color: #4f97d7;">]</span>
+</pre>
+</div>
+</section>
+<section id="slide-5-3">
+<h3 id="5-3"><span class="section-number-3">5.3.</span> In-database logging decisions</h3>
+<ul>
+<li class="fragment appear">If you want relationships to several instances, you will need a mapping
+table to hold the relationships.</li>
+<li class="fragment appear">Decide on generic vs specific log records</li>
+
+</ul>
+</section>
+<section id="slide-5-4">
+<h3 id="5-4"><span class="section-number-3">5.4.</span> EX4 - Add log records in database</h3>
+<ul>
+<li>Add a log model that keeps logs of when a User object changes</li>
+<li>Also log every login</li>
+<li>Bonus: log who makes changes to a BookInstance, so we can query all
+changes by a user</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-6">
+<h2 id="6"><span class="section-number-2">6.</span> Log Exploration &amp; Querying</h2>
+<div class="outline-text-2" id="text-6">
+</div>
+</section>
+<section id="slide-6-1">
+<h3 id="6-1"><span class="section-number-3">6.1.</span> Query Examples</h3>
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #7590db;">user</span> = User.objects.get<span style="color: #4f97d7;">(</span>pk=<span style="color: #a45bad;">1</span><span style="color: #4f97d7;">)</span>
+<span style="color: #2aa1ae; background-color: #292e34;"># </span><span style="color: #2aa1ae; background-color: #292e34;">filter records if using a specific AuditLog for users</span>
+user.log_records.<span style="color: #4f97d7;">filter</span><span style="color: #4f97d7;">(</span>message__icontains=<span style="color: #2d9574;">'logged in'</span><span style="color: #4f97d7;">)</span>
+<span style="color: #2aa1ae; background-color: #292e34;"># </span><span style="color: #2aa1ae; background-color: #292e34;">or, for generic key</span>
+<span style="color: #7590db;">ct</span> = ContentType.objects.get_for_model<span style="color: #4f97d7;">(</span>User<span style="color: #4f97d7;">)</span>
+<span style="color: #7590db;">logs</span> = AuditLog.objects.<span style="color: #4f97d7;">filter</span><span style="color: #4f97d7;">(</span>
+    content_type=ct,
+    object_id=user.<span style="color: #4f97d7;">id</span>,
+    message__icontains=<span style="color: #2d9574;">'logged in'</span>
+<span style="color: #4f97d7;">)</span>
+
+</pre>
+</div>
+</section>
+<section id="slide-6-2">
+<h3 id="6-2"><span class="section-number-3">6.2.</span> Admin Integration</h3>
+<ul>
+<li>Custom admin views for log exploration</li>
+
+</ul>
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #2aa1ae; background-color: #292e34;"># </span><span style="color: #2aa1ae; background-color: #292e34;">Add auditlog as an inline of User</span>
+<span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">AuditLogInline</span><span style="color: #4f97d7;">(</span>admin.TabularInline<span style="color: #4f97d7;">)</span>:
+    <span style="color: #7590db;">model</span> = AuditLog
+    <span style="color: #7590db;">fk_name</span> = <span style="color: #2d9574;">"user"</span>
+    ...
+<span style="color: #2aa1ae; background-color: #292e34;"># </span><span style="color: #2aa1ae; background-color: #292e34;">Unregister the default UserAdmin</span>
+admin.site.unregister<span style="color: #4f97d7;">(</span>User<span style="color: #4f97d7;">)</span>
+<span style="color: #4f97d7; font-weight: bold;">class</span> <span style="color: #ce537a; font-weight: bold;">CustomUserAdmin</span><span style="color: #4f97d7;">(</span>UserAdmin<span style="color: #4f97d7;">)</span>:
+    <span style="color: #7590db;">inlines</span> = UserAdmin.inlines + <span style="color: #4f97d7;">(</span>AuditLogInline,<span style="color: #4f97d7;">)</span>
+
+admin.site.register<span style="color: #4f97d7;">(</span>User, CustomUserAdmin<span style="color: #4f97d7;">)</span>
+</pre>
+</div>
+</section>
+</section>
+<section>
+<section id="slide-7">
+<h2 id="7"><span class="section-number-2">7.</span> Log Shipping</h2>
+<ul>
+<li class="fragment appear">Audit logs might be better kept off-platform</li>
+<li class="fragment appear">External services may offer superior analytics</li>
+<li class="fragment appear">Database size/write rate/query performance may be problematic</li>
+
+</ul>
+</section>
+<section id="slide-7-1">
+<h3 id="7-1"><span class="section-number-3">7.1.</span> Elasticsearch export</h3>
+<ul>
+<li>Simple to achieve with JSON logs</li>
+<li>Reasonably simple to set up and integrate</li>
+<li>Kibana gives easy-ish viewing</li>
+
+</ul>
+</section>
+<section id="slide-7-2">
+<h3 id="7-2"><span class="section-number-3">7.2.</span> EX5 - Export logs to Elasticsearch</h3>
+<ul>
+<li>Run <code>docker compose -f solutions/el.yaml</code> to pull and
+start Elasticsearch and Kibana</li>
+<li>Implement the ElasticsearchHandler in <code>catalog/logging.py</code></li>
+<li>Create index pattern for `logs` at <a href="http://localhost:5601/app/management/data/index_management/indices">http://localhost:5601/app/management/data/index_management/indices</a></li>
+<li>See logs at <a href="http://localhost:5601/app/discover">http://localhost:5601/app/discover</a></li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-8">
+<h2 id="8"><span class="section-number-2">8.</span> Trade-offs, Best Practices and Questions</h2>
+<ul>
+<li class="fragment fade">Log retention</li>
+<li class="fragment fade">Performance</li>
+<li class="fragment fade">Explorability</li>
+<li class="fragment fade">Privacy / Compliance</li>
+<li class="fragment fade">Why do we log?</li>
+
+</ul>
+</section>
+</section>
+</div>
+</div>
+<script src="./reveal.js/dist/reveal.js"></script>
+<script src="./reveal.js/plugin/markdown/markdown.js"></script>
+<script src="./reveal.js/plugin/notes/notes.js"></script>
+<script src="./reveal.js/plugin/search/search.js"></script>
+<script src="./reveal.js/plugin/zoom/zoom.js"></script>
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: false,
+center: true,
+slideNumber: 'c',
+rollingLinks: false,
+keyboard: true,
+mouseWheel: false,
+fragmentInURL: false,
+hashOneBasedIndex: false,
+pdfSeparateFragments: true,
+overview: true,
+
+transition: 'convex',
+transitionSpeed: 'default',
+
+// Plugins with reveal.js 4.x
+plugins: [ RevealMarkdown, RevealNotes, RevealSearch, RevealZoom ],
+
+// Optional libraries used to extend reveal.js
+dependencies: [
+]
+
+});
+</script>
+</body>
+</html>

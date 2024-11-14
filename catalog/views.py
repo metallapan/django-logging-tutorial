@@ -5,13 +5,12 @@ from django.shortcuts import render
 from .models import Book, Author, BookInstance, Genre, Language
 import logging
 
-# TODO EX1: May need to replace this?
+# TODO EX1: May or may not need to replace this
 LOG = logging.getLogger(__name__)
 
 
 def index(request):
     """View function for home page of site."""
-    LOG.info("Loading index")
     # Generate counts of some of the main objects
     num_books = Book.objects.all().count()
     num_instances = BookInstance.objects.all().count()
@@ -24,17 +23,20 @@ def index(request):
     num_visits += 1
     request.session["num_visits"] = num_visits
 
-    # Render the HTML template index.html with the data in the context variable.
-    return render(
-        request,
-        "index.html",
-        context={
+    context = {
             "num_books": num_books,
             "num_instances": num_instances,
             "num_instances_available": num_instances_available,
             "num_authors": num_authors,
             "num_visits": num_visits,
-        },
+    }
+    #  TODO EX1: May or may not want to update this
+    LOG.info("Loading index", extra={'context': context})
+    # Render the HTML template index.html with the data in the context variable.
+    return render(
+        request,
+        "index.html",
+        context=context,
     )
 
 
