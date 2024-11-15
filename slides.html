@@ -73,11 +73,49 @@ inv init run  <span style="color: #2aa1ae; background-color: #292e34;"># </span>
 <li>Why</li>
 
 </ul>
+<pre class="fragment appear">
+2024-11-15 08:32:14,582 INFO [django.server] "GET /api/users/12345/ HTTP/1.1" 500 145
+</pre>
+<pre class="fragment appear">
+2024-11-15 08:32:14,789 ERROR [django.request] Internal Server Error: /api/users/12345/
+Traceback (most recent call last):
+  File "/venv/lib/python3.9/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/venv/lib/python3.9/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/venv/lib/python3.9/site-packages/django/views/decorators/csrf.py", line 54, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "/app/myapp/views.py", line 127, in get_user_profile
+    profile_data = user_service.get_extended_profile(user_id)
+  File "/app/myapp/services/user.py", line 89, in get_extended_profile
+    profile = UserProfile.objects.select_related('preferences').get(user_id=user_id)
+  File "/venv/lib/python3.9/site-packages/django/db/models/query.py", line 435, in get
+    num = len(clone)
+  File "/venv/lib/python3.9/site-packages/django/db/models/query.py", line 262, in __len__
+    self._fetch_all()
+  File "/venv/lib/python3.9/site-packages/django/db/models/query.py", line 1324, in _fetch_all
+    self._result_cache = list(self._iter)
+  File "/venv/lib/python3.9/site-packages/django/db/models/query.py", line 51, in __iter__
+    results = compiler.execute_sql(chunked_fetch=self.chunked_fetch, chunk_size=chunk_size)
+  File "/venv/lib/python3.9/site-packages/django/db/models/sql/compiler.py", line 1175, in execute_sql
+    cursor = self.connection.cursor()
+  File "/venv/lib/python3.9/site-packages/django/db/backends/base/base.py", line 259, in cursor
+    return self._cursor()
+  File "/venv/lib/python3.9/site-packages/django/db/backends/base/base.py", line 235, in _cursor
+    self.ensure_connection()
+  File "/venv/lib/python3.9/site-packages/django/db/backends/base/base.py", line 219, in ensure_connection
+    self.connect()
+  File "/venv/lib/python3.9/site-packages/django/db/utils.py", line 90, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/venv/lib/python3.9/site-packages/django/db/backends/postgresql/base.py", line 187, in get_new_connection
+    connection = Database.connect(**conn_params)
+django.db.utils.OperationalError: connection to server at "db.example.com" failed: nodename nor servname provided, or not known
+</pre>
 </section>
 <section id="slide-2-1">
 <h3 id="2-1"><span class="section-number-3">2.1.</span> Python logging recap</h3>
 
-<div id="org755251b" class="figure">
+<div id="orgd6e9a38" class="figure">
 <p><img src="./images/logging.png" alt="logging.png" />
 </p>
 </div>
@@ -86,15 +124,21 @@ inv init run  <span style="color: #2aa1ae; background-color: #292e34;"># </span>
 <h4 id="2-1-1"><span class="section-number-4">2.1.1.</span> Python logging recap cont.</h4>
 <div class="org-src-container">
 
-<pre class="src src-python"><span style="color: #7590db;">LOG</span> = logging.getLogger<span style="color: #4f97d7;">(</span><span style="color: #4f97d7;">__name__</span><span style="color: #4f97d7;">)</span>
-LOG.info<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">"Some message"</span><span style="color: #4f97d7;">)</span>
+<pre class="src src-python">&gt;&gt;&gt; <span style="color: #4f97d7; font-weight: bold;">import</span> logging
+&gt;&gt;&gt; logging.basicConfig<span style="color: #4f97d7;">(</span>force=<span style="color: #a45bad;">True</span>, level=logging.DEBUG<span style="color: #4f97d7;">)</span>
+&gt;&gt;&gt; <span style="color: #7590db;">LOG</span> = logging.getLogger<span style="color: #4f97d7;">(</span><span style="color: #4f97d7;">__name__</span><span style="color: #4f97d7;">)</span>
+&gt;&gt;&gt; LOG.info<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">"Some message"</span><span style="color: #4f97d7;">)</span>
+INFO:__main__:some message
 </pre>
 </div>
 
 <div class="org-src-container">
 
-<pre class="fragment appear"><span style="color: #7590db;">LOG</span> = logging.getLogger<span style="color: #4f97d7;">(</span><span style="color: #4f97d7;">__name__</span><span style="color: #4f97d7;">)</span>
-LOG.info<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">"Some message"</span>, extra=<span style="color: #bc6ec5;">{</span><span style="color: #2d9574;">"context"</span>: context<span style="color: #bc6ec5;">}</span><span style="color: #4f97d7;">)</span>
+<pre class="fragment appear">&gt;&gt;&gt; <span style="color: #4f97d7; font-weight: bold;">import</span> logging
+&gt;&gt;&gt; logging.basicConfig<span style="color: #4f97d7;">(</span>force=<span style="color: #a45bad;">True</span>, level=logging.DEBUG<span style="color: #4f97d7;">)</span>
+&gt;&gt;&gt; <span style="color: #7590db;">LOG</span> = logging.getLogger<span style="color: #4f97d7;">(</span><span style="color: #4f97d7;">__name__</span><span style="color: #4f97d7;">)</span>
+&gt;&gt;&gt; LOG.info<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">"Some message"</span>, extra=<span style="color: #bc6ec5;">{</span><span style="color: #2d9574;">'context'</span>: <span style="color: #2d9574;">{</span><span style="color: #a45bad;">1</span>: <span style="color: #2d9574;">'three'</span><span style="color: #2d9574;">}</span><span style="color: #bc6ec5;">}</span><span style="color: #4f97d7;">)</span>
+INFO:__main__:some message
 </pre>
 </div>
 </section>
@@ -157,7 +201,21 @@ LOG.info<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">"Som
 </ul>
 </section>
 <section id="slide-3-1">
-<h3 id="3-1"><span class="section-number-3">3.1.</span> Audit log concerns</h3>
+<h3 id="3-1"><span class="section-number-3">3.1.</span> Receiving signals</h3>
+<div class="org-src-container">
+
+<pre class="src src-python"><span style="color: #4f97d7; font-weight: bold;">from</span> django.dispatch <span style="color: #4f97d7; font-weight: bold;">import</span> receiver
+<span style="color: #4f97d7; font-weight: bold;">from</span> django.db.models.signals <span style="color: #4f97d7; font-weight: bold;">import</span> pre_save
+<span style="color: #4f97d7; font-weight: bold;">from</span> myapp.models <span style="color: #4f97d7; font-weight: bold;">import</span> MyModel
+
+<span style="color: #ce537a; font-weight: bold;">@receiver</span><span style="color: #4f97d7;">(</span>pre_save, sender=MyModel<span style="color: #4f97d7;">)</span>
+<span style="color: #4f97d7; font-weight: bold;">def</span> <span style="color: #bc6ec5; font-weight: bold;">do_something_clever</span><span style="color: #4f97d7;">(</span>sender: Type<span style="color: #bc6ec5;">[</span>MyModel<span style="color: #bc6ec5;">]</span>, instance: MyModel, **kwargs<span style="color: #4f97d7;">)</span>:
+    ...
+</pre>
+</div>
+</section>
+<section id="slide-3-2">
+<h3 id="3-2"><span class="section-number-3">3.2.</span> Audit log concerns</h3>
 <ul>
 <li class="fragment appear">Remember rollbacks</li>
 
@@ -171,28 +229,28 @@ LOG.info<span style="color: #4f97d7;">(</span><span style="color: #2d9574;">"Som
 </pre>
 </div>
 </section>
-<section id="slide-3-2">
-<h3 id="3-2"><span class="section-number-3">3.2.</span> Audit log concerns</h3>
+<section id="slide-3-3">
+<h3 id="3-3"><span class="section-number-3">3.3.</span> Audit log concerns</h3>
 <ul>
 <li>Avoid tasksplosion</li>
 
 </ul>
 
-<div id="orgd67f601" class="figure">
+<div id="orgd2cbe29" class="figure">
 <p><img src="./images/spike.png" alt="spike.png" class="fragment appear" />
 </p>
 </div>
 </section>
-<section id="slide-3-3">
-<h3 id="3-3"><span class="section-number-3">3.3.</span> Audit log concerns</h3>
+<section id="slide-3-4">
+<h3 id="3-4"><span class="section-number-3">3.4.</span> Audit log concerns</h3>
 
-<div id="org59debb3" class="figure">
+<div id="org5dc1e06" class="figure">
 <p><img src="./images/logjam.jpg" alt="logjam.jpg" />
 </p>
 </div>
 </section>
-<section id="slide-3-4">
-<h3 id="3-4"><span class="section-number-3">3.4.</span> Hands-on Exercise</h3>
+<section id="slide-3-5">
+<h3 id="3-5"><span class="section-number-3">3.5.</span> EX2 - Django signal receivers</h3>
 <ul>
 <li>Add pre- or post-save logging for BookInstance in <code>catalog/signals.py</code></li>
 <li>Add login logging whenever a user logs in in the same file</li>
