@@ -81,4 +81,4 @@ class ElasticsearchHandler(logging.Handler):
             self.es.index(index=self.index, document=log_entry)
 
         except Exception:
-          pass
+           self.handleError(record)
