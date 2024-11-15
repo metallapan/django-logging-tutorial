@@ -1,4 +1,4 @@
-"""Half-implemented JSON logging - find the TODO/s"""
+"""Half-implemented JSON logging - find the TODOs"""
 
 import json
 import datetime
@@ -81,3 +81,4 @@ class ElasticsearchHandler(logging.Handler):
             self.es.index(index=self.index, document=log_entry)
 
         except Exception:
+          pass
